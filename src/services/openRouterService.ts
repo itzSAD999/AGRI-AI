@@ -1,23 +1,25 @@
-import { CLAUDE_MODEL } from '../agents/agentConfigs'
+import { getOpenRouterModel } from '../agents/agentConfigs'
 
 type Message = { role: 'user' | 'assistant'; content: string }
 
-export async function callClaude(params: {
+/** Chat completions via OpenRouter (primary LLM path for the app). */
+export async function callOpenRouter(params: {
   system: string
   messages: Message[]
   maxTokens: number
   temperature: number
 }): Promise<string> {
+  const model = getOpenRouterModel()
   const openRouterMessages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }> = [
     { role: 'system', content: params.system },
     ...params.messages,
   ]
 
-  const res = await fetch('/api/claude', {
+  const res = await fetch('/api/openrouter', {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify({
-      model: CLAUDE_MODEL,
+      model,
       max_tokens: params.maxTokens,
       temperature: params.temperature,
       messages: openRouterMessages,

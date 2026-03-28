@@ -1,9 +1,11 @@
 /**
- * OpenRouter model ID (NOT the raw Anthropic API name like claude-sonnet-4-20250514).
- * List: https://openrouter.ai/models — use slugs such as anthropic/claude-sonnet-4.5
+ * OpenRouter model for chat completions. When `VITE_OPENROUTER_MODEL` is unset, uses
+ * `openrouter/auto` so OpenRouter picks a model per request (no fixed vendor model).
+ * Override with any slug from https://openrouter.ai/models if you want a specific one.
  */
-export const CLAUDE_MODEL: string =
-  import.meta.env.VITE_OPENROUTER_MODEL?.trim() || 'anthropic/claude-sonnet-4.5'
+export function getOpenRouterModel(): string {
+  return import.meta.env.VITE_OPENROUTER_MODEL?.trim() || 'openrouter/auto'
+}
 
 export const agentParams = {
   tutor: { temperature: 0.4, maxTokens: 800 },

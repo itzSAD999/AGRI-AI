@@ -1,5 +1,5 @@
 -- ╔════════════════════════════════════════════════════════════════════╗
--- ║  EDUGAP AI — COMPLETE SUPABASE PRODUCTION SCHEMA                 ║
+-- ║  AKUAFO AI — COMPLETE SUPABASE PRODUCTION SCHEMA                 ║
 -- ║  Copy this ENTIRE file and run in:                               ║
 -- ║    Supabase Dashboard → SQL Editor → New query → Paste → Run     ║
 -- ║  Safe to re-run: drops everything first, then recreates.         ║
@@ -937,7 +937,7 @@ begin
 end $$;
 
 -- ╔════════════════════════════════════════════════════════════════════╗
--- ║  DONE! Your EduGap AI Supabase backend is ready for production.  ║
+-- ║  DONE! Your Akuafo AI Supabase backend is ready for production.  ║
 -- ║                                                                    ║
 -- ║  Tables:                                                           ║
 -- ║    student_profiles    — user accounts (auto-created on sign-up)   ║
@@ -945,7 +945,7 @@ end $$;
 -- ║    topics              — 120+ topics per subject per level          ║
 -- ║    tutor_sessions      — AI tutor chat history                     ║
 -- ║    practice_attempts   — quiz/practice results with marking        ║
--- ║    decks               — Gizmo-style flashcard decks               ║
+-- ║    decks               — flashcard decks (spaced repetition)       ║
 -- ║    deck_cards          — individual cards with spaced repetition   ║
 -- ║    study_notes         — personal study notes                      ║
 -- ║    usage_events        — analytics events                          ║

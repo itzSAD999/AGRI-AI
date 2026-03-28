@@ -26,8 +26,8 @@ function readBody(req: IncomingMessage): Promise<string> {
   })
 }
 
-function attachLlmProxy(middlewares: ConnectLike, env: Record<string, string>) {
-  middlewares.use('/api/claude', async (req: IncomingMessage, res: ProxyRes, next: NextFn) => {
+function attachOpenRouterProxy(middlewares: ConnectLike, env: Record<string, string>) {
+  const handler = async (req: IncomingMessage, res: ProxyRes, next: NextFn) => {
     if (req.method !== 'POST') {
       next()
       return
@@ -64,7 +64,9 @@ function attachLlmProxy(middlewares: ConnectLike, env: Record<string, string>) {
         }),
       )
     }
-  })
+  }
+  middlewares.use('/api/openrouter', handler)
+  middlewares.use('/api/claude', handler)
 }
 
 // https://vite.dev/config/
@@ -76,12 +78,12 @@ export default defineConfig(({ mode }) => {
       react(),
       tailwindcss(),
       {
-        name: 'llm-api-proxy',
+        name: 'openrouter-api-proxy',
         configureServer(server) {
-          attachLlmProxy(server.middlewares as unknown as ConnectLike, env)
+          attachOpenRouterProxy(server.middlewares as unknown as ConnectLike, env)
         },
         configurePreviewServer(server) {
-          attachLlmProxy(server.middlewares as unknown as ConnectLike, env)
+          attachOpenRouterProxy(server.middlewares as unknown as ConnectLike, env)
         },
       },
     ],

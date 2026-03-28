@@ -1,5 +1,5 @@
 import { GUIDANCE_SYSTEM_PROMPT, agentParams } from './agentConfigs'
-import { callClaude } from '../services/claudeService'
+import { callOpenRouter } from '../services/openRouterService'
 import { parseGuidanceJson, type GuidanceOutput } from '../utils/outputParsers'
 import type { EligibilitySummary } from '../utils/guidanceRules'
 
@@ -23,7 +23,7 @@ export async function runGuidanceAgent(params: {
     },
   }
   const user = `Student profile JSON:\n${JSON.stringify(payload, null, 2)}\n\nGenerate guidance JSON only.`
-  const raw = await callClaude({
+  const raw = await callOpenRouter({
     system: GUIDANCE_SYSTEM_PROMPT,
     messages: [{ role: 'user', content: user }],
     maxTokens: agentParams.guidance.maxTokens,

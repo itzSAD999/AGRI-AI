@@ -1,5 +1,5 @@
 import { agentParams, TUTOR_SYSTEM_PROMPT } from './agentConfigs'
-import { callClaude } from '../services/claudeService'
+import { callOpenRouter } from '../services/openRouterService'
 import { parseTutorJson, type TutorOutput } from '../utils/outputParsers'
 
 export async function runTutorAgent(params: {
@@ -13,7 +13,7 @@ Level: ${params.level}
 ${params.topic ? `Topic: ${params.topic}\n` : ''}
 Student question:
 ${params.question}`
-  const raw = await callClaude({
+  const raw = await callOpenRouter({
     system: TUTOR_SYSTEM_PROMPT,
     messages: [{ role: 'user', content: user }],
     maxTokens: agentParams.tutor.maxTokens,
@@ -72,7 +72,7 @@ export async function runTutorChat(params: {
     .filter(Boolean)
     .join('\n')
 
-  return callClaude({
+  return callOpenRouter({
     system,
     messages,
     maxTokens: 1500,

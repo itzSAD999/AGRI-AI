@@ -1,5 +1,5 @@
 import { agentParams, SIMPLIFY_SYSTEM_PROMPT, TWI_SYSTEM_PROMPT } from './agentConfigs'
-import { callClaude } from '../services/claudeService'
+import { callOpenRouter } from '../services/openRouterService'
 import type { TutorOutput } from '../utils/outputParsers'
 import type { TwiBundle } from '../utils/translationCache'
 
@@ -22,7 +22,7 @@ function formatEnglishCard(out: TutorOutput): string {
 }
 
 export async function runTwiAgent(out: TutorOutput): Promise<TwiBundle> {
-  const raw = await callClaude({
+  const raw = await callOpenRouter({
     system: TWI_SYSTEM_PROMPT,
     messages: [
       {
@@ -37,7 +37,7 @@ export async function runTwiAgent(out: TutorOutput): Promise<TwiBundle> {
 }
 
 export async function runSimplifyAgent(out: TutorOutput): Promise<string> {
-  return callClaude({
+  return callOpenRouter({
     system: SIMPLIFY_SYSTEM_PROMPT,
     messages: [
       {
@@ -80,7 +80,7 @@ function parseTwiSections(text: string): TwiBundle {
 
 /** Translate arbitrary text to Twi via Claude. Caches nothing — caller can cache. */
 export async function translateText(text: string): Promise<string> {
-  return callClaude({
+  return callOpenRouter({
     system: TWI_SYSTEM_PROMPT,
     messages: [{ role: 'user', content: `Translate to Asante Twi:\n\n${text}` }],
     maxTokens: agentParams.twi.maxTokens,
@@ -90,7 +90,7 @@ export async function translateText(text: string): Promise<string> {
 
 /** Twi for career guidance blocks — keep section headers in English per Twi prompt rules. */
 export async function runTwiGuidancePlain(block: string): Promise<string> {
-  return callClaude({
+  return callOpenRouter({
     system: TWI_SYSTEM_PROMPT,
     messages: [
       {

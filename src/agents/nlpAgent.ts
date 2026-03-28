@@ -1,5 +1,5 @@
 import { NLP_SYSTEM_PROMPT, agentParams } from './agentConfigs'
-import { callClaude } from '../services/claudeService'
+import { callOpenRouter } from '../services/openRouterService'
 import { parseNlpUnderstandJson, type NlpUnderstandOutput } from '../utils/outputParsers'
 
 export async function runNlpUnderstand(userMessage: string): Promise<NlpUnderstandOutput> {
@@ -23,7 +23,7 @@ export async function runNlpUnderstand(userMessage: string): Promise<NlpUndersta
       clarifyMessage: 'Type what you want to do — e.g. explain algebra, practice quiz, or university guidance.',
     }
   }
-  const raw = await callClaude({
+  const raw = await callOpenRouter({
     system: NLP_SYSTEM_PROMPT + '\n\nThe user may write in Twi (Asante Twi). Understand Twi input and extract intent/entities just the same.',
     messages: [{ role: 'user', content: trimmed }],
     maxTokens: agentParams.nlp.maxTokens,

@@ -1,5 +1,5 @@
 import { agentParams, PRACTICE_SYSTEM_PROMPT } from './agentConfigs'
-import { callClaude } from '../services/claudeService'
+import { callOpenRouter } from '../services/openRouterService'
 import {
   parseDeckCardsJson,
   parsePracticeJson,
@@ -16,7 +16,7 @@ export async function runPracticeAgent(params: {
 Subject: ${params.subject}
 Level: ${params.level}
 ${params.topic ? `Focus topic: ${params.topic}` : 'Pick an appropriate syllabus topic.'}`
-  const raw = await callClaude({
+  const raw = await callOpenRouter({
     system: PRACTICE_SYSTEM_PROMPT,
     messages: [{ role: 'user', content: user }],
     maxTokens: agentParams.practice.maxTokens,
@@ -67,7 +67,7 @@ export async function generateDeckCards(params: {
     ? `Generate ${count} study cards from this material:\n\n${params.material.slice(0, 12_000)}`
     : `Generate ${count} study cards covering key ${params.subject} topics for ${params.level}.${params.topic ? ` Focus on: ${params.topic}` : ''}`
 
-  const raw = await callClaude({
+  const raw = await callOpenRouter({
     system,
     messages: [{ role: 'user', content: userMsg }],
     maxTokens: 4000,

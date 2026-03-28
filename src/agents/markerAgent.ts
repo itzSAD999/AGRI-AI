@@ -1,5 +1,5 @@
 import { agentParams, MARKER_SYSTEM_PROMPT } from './agentConfigs'
-import { callClaude } from '../services/claudeService'
+import { callOpenRouter } from '../services/openRouterService'
 import { parseMarkerJson, type MarkerOutput } from '../utils/outputParsers'
 import type { PracticeQuestion } from '../utils/outputParsers'
 
@@ -19,7 +19,7 @@ Student answer:
 ${params.studentAnswer}
 
 Mark fairly. JSON only.`
-  const raw = await callClaude({
+  const raw = await callOpenRouter({
     system: MARKER_SYSTEM_PROMPT,
     messages: [{ role: 'user', content: user }],
     maxTokens: agentParams.marker.maxTokens,
