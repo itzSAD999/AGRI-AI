@@ -1,4 +1,9 @@
-export const CLAUDE_MODEL = 'claude-sonnet-4-20250514' as const
+/**
+ * OpenRouter model ID (NOT the raw Anthropic API name like claude-sonnet-4-20250514).
+ * List: https://openrouter.ai/models — use slugs such as anthropic/claude-sonnet-4.5
+ */
+export const CLAUDE_MODEL: string =
+  import.meta.env.VITE_OPENROUTER_MODEL?.trim() || 'anthropic/claude-sonnet-4.5'
 
 export const agentParams = {
   tutor: { temperature: 0.4, maxTokens: 800 },

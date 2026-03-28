@@ -8,6 +8,11 @@ export async function callClaude(params: {
   maxTokens: number
   temperature: number
 }): Promise<string> {
+  const openRouterMessages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }> = [
+    { role: 'system', content: params.system },
+    ...params.messages,
+  ]
+
   const res = await fetch('/api/claude', {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
@@ -15,8 +20,7 @@ export async function callClaude(params: {
       model: CLAUDE_MODEL,
       max_tokens: params.maxTokens,
       temperature: params.temperature,
-      system: params.system,
-      messages: params.messages,
+      messages: openRouterMessages,
     }),
   })
   const raw = await res.text()
@@ -24,7 +28,7 @@ export async function callClaude(params: {
     let msg = raw || res.statusText
     try {
       const j = JSON.parse(raw) as {
-        error?: { message?: string } | string
+        error?: { message?: string; code?: number } | string
       }
       if (typeof j.error === 'string') msg = j.error
       else if (j.error && typeof j.error === 'object' && 'message' in j.error) {
@@ -33,15 +37,15 @@ export async function callClaude(params: {
     } catch {
       /* ignore */
     }
-    if (msg.includes('ANTHROPIC_API_KEY') || res.status === 500) {
-      msg = `${msg} — For local dev, add ANTHROPIC_API_KEY to .env and restart Vite.`
+    if (msg.includes('OPENROUTER_API_KEY') || res.status === 500) {
+      msg = `${msg} — For local dev, add OPENROUTER_API_KEY to .env and restart Vite.`
     }
     throw new Error(msg)
   }
   const data = JSON.parse(raw) as {
-    content?: Array<{ type: string; text?: string }>
+    choices?: Array<{ message?: { content?: string } }>
   }
-  const text = data.content?.find((c) => c.type === 'text')?.text
+  const text = data.choices?.[0]?.message?.content
   if (!text) throw new Error('Empty model response')
   return text
 }

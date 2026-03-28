@@ -19,6 +19,7 @@ import { useLang } from '../context/LanguageContext'
 import {
   fetchUserPracticeHistory,
   fetchUserTutorHistory,
+  getSupabase,
   isSupabaseConfigured,
 } from '../services/supabaseService'
 import {
@@ -53,7 +54,29 @@ export function Dashboard() {
   const [loading, setLoading] = useState(true)
   const configured = isSupabaseConfigured()
 
-  const profile = useMemo(loadProfile, [])
+  const [profile, setProfile] = useState(loadProfile)
+
+  useEffect(() => {
+    if (configured && user) {
+      const sb = getSupabase()
+      if (sb) {
+        sb.from('student_profiles')
+          .select('avatar, school_level, school_name, primary_subjects, exam_date')
+          .eq('id', user.id)
+          .single()
+          .then(({ data }) => {
+            if (!data) return
+            setProfile({
+              avatar: data.avatar ?? '🎓',
+              level: data.school_level ?? 'WASSCE',
+              school: data.school_name ?? '',
+              subjects: data.primary_subjects ?? ['Mathematics'],
+              examDate: data.exam_date ?? '',
+            })
+          })
+      }
+    }
+  }, [configured, user])
 
   const load = useCallback(async () => {
     try {

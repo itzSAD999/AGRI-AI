@@ -6,6 +6,7 @@ import { useLang } from '../context/LanguageContext'
 import { cn } from '../lib/cn'
 import { SUBJECTS, subjectsForLevel } from '../utils/curriculumContext'
 import { deckMastery, getDueCards } from '../types/practice'
+import { getSupabase, isSupabaseConfigured, updateStudentProfile } from '../services/supabaseService'
 
 type Level = 'BECE' | 'WASSCE'
 
@@ -44,13 +45,32 @@ export function Profile() {
   const [saved, setSaved] = useState(false)
 
   useEffect(() => {
-    const p = loadProfile()
-    setAvatar(p.avatar)
-    setLevel(p.level)
-    setSchool(p.school)
-    setSubjects(p.subjects)
-    setExamDate(p.examDate)
-  }, [])
+    const local = loadProfile()
+    setAvatar(local.avatar)
+    setLevel(local.level)
+    setSchool(local.school)
+    setSubjects(local.subjects)
+    setExamDate(local.examDate)
+
+    if (isSupabaseConfigured() && user) {
+      const sb = getSupabase()
+      if (sb) {
+        sb.from('student_profiles')
+          .select('avatar, school_level, school_name, primary_subjects, exam_date, language_pref')
+          .eq('id', user.id)
+          .single()
+          .then(({ data }) => {
+            if (!data) return
+            if (data.avatar) setAvatar(data.avatar)
+            if (data.school_level) setLevel(data.school_level as Level)
+            if (data.school_name) setSchool(data.school_name)
+            if (data.primary_subjects?.length) setSubjects(data.primary_subjects)
+            if (data.exam_date) setExamDate(data.exam_date)
+            if (data.language_pref === 'twi') setLang('twi')
+          })
+      }
+    }
+  }, [user, setLang])
 
   const pool = useMemo(() => subjectsForLevel(level).map((s) => s.name), [level])
 
@@ -60,11 +80,31 @@ export function Profile() {
     )
   }
 
-  const handleSave = useCallback(() => {
+  const handleSave = useCallback(async () => {
     saveProfile({ avatar, level, school, subjects, examDate })
+
+    if (isSupabaseConfigured() && user) {
+      try {
+        await updateStudentProfile(user.id, {
+          school_level: level,
+          school_name: school || undefined,
+          primary_subjects: subjects,
+          language_pref: lang,
+        })
+        const sb = getSupabase()
+        if (sb) {
+          await sb.from('student_profiles')
+            .update({ avatar, exam_date: examDate || null })
+            .eq('id', user.id)
+        }
+      } catch (e) {
+        console.warn('[profile] Supabase save failed:', e)
+      }
+    }
+
     setSaved(true)
     setTimeout(() => setSaved(false), 2000)
-  }, [avatar, level, school, subjects, examDate])
+  }, [avatar, level, school, subjects, examDate, user, lang])
 
   const weeksUntilExam = useMemo(() => {
     if (!examDate) return null

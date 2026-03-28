@@ -11,6 +11,7 @@ import { useStudy } from '../context/StudyContext'
 import { cn } from '../lib/cn'
 import { subjectsForLevel } from '../utils/curriculumContext'
 import { userFacingError } from '../utils/errorHandler'
+import { insertUsageEvent } from '../services/supabaseService'
 import { getDueCards, deckMastery, newCard, type Card, type Deck } from '../types/practice'
 import type { AppLocationState } from '../types/nlpWorkflow'
 
@@ -214,6 +215,7 @@ function DeckCreate({ onBack, onCreated }: { onBack: () => void; onCreated: (id:
       sourceMaterial: material || undefined,
       cards: preview.map(newCard),
     })
+    void insertUsageEvent({ event_type: 'deck_create', subject, level })
     onCreated(deck.id)
   }
 

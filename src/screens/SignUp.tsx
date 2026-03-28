@@ -13,13 +13,20 @@ export function SignUp() {
 
   if (user) return <Navigate to="/app" replace />
 
+  const [confirmMsg, setConfirmMsg] = useState<string | null>(null)
+
   const submit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError(null)
+    setConfirmMsg(null)
     setLoading(true)
     try {
-      await signUp(email, password, name)
-      nav('/app', { replace: true })
+      const { needsConfirmation } = await signUp(email, password, name)
+      if (needsConfirmation) {
+        setConfirmMsg('Check your email to confirm your account, then sign in.')
+      } else {
+        nav('/app', { replace: true })
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong.')
     } finally {
@@ -115,6 +122,7 @@ export function SignUp() {
                 placeholder="At least 6 characters"
                 className="input-dark mt-2"
                 required
+                minLength={6}
                 autoComplete="new-password"
               />
             </div>
@@ -125,9 +133,21 @@ export function SignUp() {
               </div>
             )}
 
+            {confirmMsg && (
+              <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200">
+                <p className="font-medium">{confirmMsg}</p>
+                <p className="mt-2 text-emerald-300/70">
+                  Check your inbox and spam folder. The email comes from Supabase (noreply@mail.app.supabase.io).
+                </p>
+                <Link to="/signin" className="mt-2 inline-block font-medium underline">
+                  Go to sign in
+                </Link>
+              </div>
+            )}
+
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || !!confirmMsg}
               className="w-full rounded-xl bg-[#e8b923] py-3.5 text-sm font-bold text-[#0a1628] shadow-lg shadow-[#e8b923]/20 transition hover:brightness-110 disabled:opacity-60"
             >
               {loading ? 'Creating account...' : 'Create account'}

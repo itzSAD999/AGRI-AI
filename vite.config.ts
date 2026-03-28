@@ -5,7 +5,7 @@ import type { IncomingMessage, ServerResponse } from 'node:http'
 
 type NextFn = (err?: unknown) => void
 
-type ClaudeProxyRes = ServerResponse & {
+type ProxyRes = ServerResponse & {
   statusCode?: number
   setHeader: (k: string, v: string) => void
   end: (chunk?: string) => void
@@ -14,7 +14,7 @@ type ClaudeProxyRes = ServerResponse & {
 type ConnectLike = {
   use: (
     path: string,
-    handler: (req: IncomingMessage, res: ClaudeProxyRes, next: NextFn) => void | Promise<void>,
+    handler: (req: IncomingMessage, res: ProxyRes, next: NextFn) => void | Promise<void>,
   ) => void
 }
 function readBody(req: IncomingMessage): Promise<string> {
@@ -26,27 +26,28 @@ function readBody(req: IncomingMessage): Promise<string> {
   })
 }
 
-function attachClaudeProxy(middlewares: ConnectLike, env: Record<string, string>) {
-  middlewares.use('/api/claude', async (req: IncomingMessage, res: ClaudeProxyRes, next: NextFn) => {
+function attachLlmProxy(middlewares: ConnectLike, env: Record<string, string>) {
+  middlewares.use('/api/claude', async (req: IncomingMessage, res: ProxyRes, next: NextFn) => {
     if (req.method !== 'POST') {
       next()
       return
     }
-    const key = env.ANTHROPIC_API_KEY || env.VITE_ANTHROPIC_API_KEY
+    const key = env.OPENROUTER_API_KEY
     if (!key) {
       res.statusCode = 500
       res.setHeader('content-type', 'application/json')
-      res.end(JSON.stringify({ error: 'Set ANTHROPIC_API_KEY in .env' }))
+      res.end(JSON.stringify({ error: 'Set OPENROUTER_API_KEY in .env' }))
       return
     }
     try {
       const body = await readBody(req as IncomingMessage)
-      const r = await fetch('https://api.anthropic.com/v1/messages', {
+      const r = await fetch('https://openrouter.ai/api/v1/chat/completions', {
         method: 'POST',
         headers: {
           'content-type': 'application/json',
-          'x-api-key': key,
-          'anthropic-version': '2023-06-01',
+          'authorization': `Bearer ${key}`,
+          'http-referer': env.VITE_APP_URL || 'http://localhost:5173',
+          'x-title': 'Akuafo AI',
         },
         body,
       })
@@ -75,12 +76,12 @@ export default defineConfig(({ mode }) => {
       react(),
       tailwindcss(),
       {
-        name: 'claude-api-proxy',
+        name: 'llm-api-proxy',
         configureServer(server) {
-          attachClaudeProxy(server.middlewares as unknown as ConnectLike, env)
+          attachLlmProxy(server.middlewares as unknown as ConnectLike, env)
         },
         configurePreviewServer(server) {
-          attachClaudeProxy(server.middlewares as unknown as ConnectLike, env)
+          attachLlmProxy(server.middlewares as unknown as ConnectLike, env)
         },
       },
     ],

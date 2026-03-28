@@ -20,7 +20,17 @@ export function SignIn() {
       await signIn(email, password)
       nav('/app', { replace: true })
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Something went wrong.')
+      const msg = err instanceof Error ? err.message : 'Something went wrong.'
+      if (msg.toLowerCase().includes('email not confirmed')) {
+        setError('Your email is not confirmed yet. Check your inbox (and spam folder) for a confirmation link from Supabase, then try again.')
+      } else if (
+        msg.toLowerCase().includes('invalid login credentials') ||
+        msg.toLowerCase().includes('invalid email or password')
+      ) {
+        setError('Wrong email or password. If you do not have an account yet, sign up first.')
+      } else {
+        setError(msg)
+      }
     } finally {
       setLoading(false)
     }

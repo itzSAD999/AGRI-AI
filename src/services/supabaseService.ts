@@ -1,19 +1,37 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import type { TutorOutput, MarkerOutput } from '../utils/outputParsers'
 
-const url = import.meta.env.VITE_SUPABASE_URL as string | undefined
-const anon = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined
+const url = (import.meta.env.VITE_SUPABASE_URL as string | undefined)?.trim()
+const anon = (import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined)?.trim()
 
 let client: SupabaseClient | null = null
 
+/** Reject placeholder .env so we do not silently use demo auth with fake "configured" state */
+function isValidSupabaseUrl(u: string): boolean {
+  try {
+    const parsed = new URL(u)
+    return (
+      parsed.protocol === 'https:' &&
+      parsed.hostname.endsWith('.supabase.co') &&
+      parsed.hostname.length > '.supabase.co'.length
+    )
+  } catch {
+    return false
+  }
+}
+
+function isValidSupabaseAnonKey(key: string): boolean {
+  return key.startsWith('eyJ') && key.length >= 80
+}
+
 export function getSupabase(): SupabaseClient | null {
-  if (!url || !anon) return null
+  if (!url || !anon || !isValidSupabaseUrl(url) || !isValidSupabaseAnonKey(anon)) return null
   if (!client) client = createClient(url, anon)
   return client
 }
 
 export function isSupabaseConfigured(): boolean {
-  return Boolean(url && anon)
+  return Boolean(url && anon && isValidSupabaseUrl(url) && isValidSupabaseAnonKey(anon))
 }
 
 export async function insertTutorSession(row: {
@@ -38,7 +56,10 @@ export async function insertTutorSession(row: {
     tutor_output: row.tutor_output,
     language: row.language ?? 'english',
   })
-  if (error) console.warn('[supabase] insertTutorSession:', error.message)
+  if (error) {
+    console.warn('[supabase] insertTutorSession:', error.message, error.code)
+    if (error.code === '42501') console.warn('[supabase] Run the GRANT SQL in Supabase Dashboard — see schema.sql Section 9B')
+  }
 }
 
 export async function insertPracticeAttempt(row: {
@@ -65,7 +86,10 @@ export async function insertPracticeAttempt(row: {
     marker_output: row.marker_output,
     is_correct: row.is_correct,
   })
-  if (error) console.warn('[supabase] insertPracticeAttempt:', error.message)
+  if (error) {
+    console.warn('[supabase] insertPracticeAttempt:', error.message, error.code)
+    if (error.code === '42501') console.warn('[supabase] Run the GRANT SQL in Supabase Dashboard — see schema.sql Section 9B')
+  }
 }
 
 export async function insertUsageEvent(row: {
@@ -82,7 +106,10 @@ export async function insertUsageEvent(row: {
     level: row.level ?? null,
     language: row.language ?? null,
   })
-  if (error) console.warn('[supabase] insertUsageEvent:', error.message)
+  if (error) {
+    console.warn('[supabase] insertUsageEvent:', error.message, error.code)
+    if (error.code === '42501') console.warn('[supabase] Run the GRANT SQL in Supabase Dashboard — see schema.sql Section 9B')
+  }
 }
 
 export async function fetchDashboardStats() {

@@ -1,12 +1,12 @@
-/** Vercel serverless: forwards JSON body to Anthropic Messages API */
+/** Vercel serverless: forwards JSON body to OpenRouter chat completions API */
 module.exports = async (req, res) => {
   if (req.method !== 'POST') {
     res.status(405).json({ error: 'Method not allowed' })
     return
   }
-  const key = process.env.ANTHROPIC_API_KEY
+  const key = process.env.OPENROUTER_API_KEY
   if (!key) {
-    res.status(500).json({ error: 'Missing ANTHROPIC_API_KEY' })
+    res.status(500).json({ error: 'Missing OPENROUTER_API_KEY' })
     return
   }
   const chunks = []
@@ -16,12 +16,13 @@ module.exports = async (req, res) => {
     req.on('error', reject)
   })
   const body = Buffer.concat(chunks).toString('utf8')
-  const r = await fetch('https://api.anthropic.com/v1/messages', {
+  const r = await fetch('https://openrouter.ai/api/v1/chat/completions', {
     method: 'POST',
     headers: {
       'content-type': 'application/json',
-      'x-api-key': key,
-      'anthropic-version': '2023-06-01',
+      'authorization': `Bearer ${key}`,
+      'http-referer': process.env.VITE_APP_URL || 'https://suafo-ai.vercel.app',
+      'x-title': 'Akuafo AI',
     },
     body,
   })
